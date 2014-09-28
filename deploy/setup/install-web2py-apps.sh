@@ -26,9 +26,11 @@ OPENTREE_API_BASE_URL=${12}
 
 echo "Installing web2py applications.  Hostname = $OPENTREE_HOST. Neo4j host = $NEO4JHOST. Public-facing domain = $OPENTREE_PUBLIC_DOMAIN"
 
-# **** Begin setup that is common to opentree/curator and api
+# **** Begin setup that is common to opentree/curator and phylesystem-api
 
 bash setup/install-web2py.sh
+
+# ---------- PEYOTL ----------
 
 OTHOME=$PWD
 if [ "${PEYOTL_LOG_FILE_PATH:0:1}" != "/" ]; then

@@ -208,7 +208,8 @@ if [ -r /etc/ssl/certs/opentree/STAR_opentreeoflife_org.crt ]; then
          sudo ln -sf ../sites-available/opentree-ssl ./001-opentree-ssl)
     fi
 else
-     rm -f /etc/apache2/sites-enabled/001-opentree-ssl
+    echo "*** No STAR_opentreeoflife_org.crt found - SSL not enabled ***"
+    rm -f /etc/apache2/sites-enabled/001-opentree-ssl
 fi
 
 # ---------- UNPRIVILEGED USER ----------
