@@ -23,19 +23,25 @@ fi
 # ---------- NEO4J WITH TREEMACHINE / TAXOMACHINE PLUGINS ----------
 # Set up neo4j services
 
-if git_refresh FePhyFoFum jade || [ ! -d ~/.m2/repository/org/opentree/jade ]; then
+if git_refresh FePhyFoFum jade || [ ! -d ~/.m2/repository/org/opentree/jade ] || [ $FORCE_COMPILE = "yes" ]; then
     (cd repo/jade; sh mvn_install.sh)
+    FORCE_COMPILE=yes
 fi
 
-if git_refresh OpenTreeOfLife ot-base || [ ! -d ~/.m2/repository/org/opentree/ot-base ]; then
+if git_refresh OpenTreeOfLife ot-base || [ ! -d ~/.m2/repository/org/opentree/ot-base ] || [ $FORCE_COMPILE = "yes" ]; then
     (cd repo/ot-base; sh mvn_install.sh)
+    FORCE_COMPILE=yes
 fi
 
-# I think the following is for the benefit of oti
-if git_refresh OpenTreeOfLife taxomachine || [ ! -d ~/.m2/repository/org/opentree/taxomachine ]; then
-    (cd repo/taxomachine; sh mvn_install.sh)
-    # Kludge. It would be better to handle dependencies using 'make' or something like that.
-    rm -f neo4j-taxomachine/plugins/taxomachine*.jar
+# UGH.  This ought to be done using make or any other sensible dependency system
+if [ x$WHICH_APP = x"oti" ]; then
+    if git_refresh OpenTreeOfLife taxomachine || \
+       [ ! -d ~/.m2/repository/org/opentree/taxomachine ] || \
+       [ $FORCE_COMPILE = "yes" ]; then
+	(cd repo/taxomachine; mvn clean compile install)
+	# Kludge. It would be better to handle dependencies using 'make' or something like that.
+	rm -f neo4j-taxomachine/plugins/taxomachine*.jar
+    fi
 fi
 
 #jar=opentree-neo4j-plugins-0.0.1-SNAPSHOT.jar
@@ -62,7 +68,13 @@ function make_neo4j_instance {
         echo "attempting to recompile "$APP" plugins"
         # Create and install the plugins .jar file
         # Compilation takes about 4 minutes... ugh
-        (cd repo/$APP; ./mvn_serverplugins.sh)
+        pushd repo/$APP
+	if [ -e ./mvn_serverplugins.sh ]; then 
+	    ./mvn_serverplugins.sh
+	else
+	    mvn -f pom.serverplugins.xml clean compile package jar:jar
+        fi
+	popd
     fi
 
     # Stop any running server.  (The database may be empty at this point.)
